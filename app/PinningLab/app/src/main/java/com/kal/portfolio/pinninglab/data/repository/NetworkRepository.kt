@@ -20,12 +20,15 @@ class NetworkRepository @Inject constructor(
     suspend fun get(): NetworkResult<HttpBinResponse> {
         return try {
             NetworkResult.Success(api.get())
-        } catch (e: ProxyDetectedException) {
-            NetworkResult.Error("Proxy détecté — intercept bloqué")
-        } catch (e: javax.net.ssl.SSLPeerUnverifiedException) {
-            NetworkResult.Error("Certificate pinning : certificat rejeté")
         } catch (e: Exception) {
-            NetworkResult.Error("Erreur réseau : ${e.message}")
+            val message = when {
+                e.cause is ProxyDetectedException -> "Proxy détecté — intercept bloqué"
+                e is ProxyDetectedException -> "Proxy détecté — intercept bloqué"
+                e.message?.contains("CERTIFICATE_VERIFY_FAILED") == true ||
+                        e is javax.net.ssl.SSLPeerUnverifiedException -> "Certificate pinning : certificat rejeté"
+                else -> "Erreur réseau : ${e.message}"
+            }
+            NetworkResult.Error(message)
         }
     }
 

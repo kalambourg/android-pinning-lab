@@ -22,4 +22,4 @@ class ProxyDetector @Inject constructor() : Interceptor {
     }
 }
 
-class ProxyDetectedException(message: String) : Exception(message)
+class ProxyDetectedException(message: String) : java.io.IOException(message)
